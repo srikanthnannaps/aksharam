@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>అక్షరం · Aksharam</title>
+  <meta name="description" content="A private Telugu type lab and poster toy. ITRANS to Telugu, padyam wall, akshara explode.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Noto+Sans+Telugu:wght@400;600;700&family=Noto+Serif+Telugu:wght@400;500;600;700&family=Ramabhadra&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="sari" aria-hidden="true"></div>
+  <div class="page">
+    <header class="masthead">
+      <p class="eyebrow">శ్రీకాంత్ కోసం · a private type toy</p>
+      <h1 class="title">అక్షరం</h1>
+      <p class="subtitle">
+        <span class="te">అక్షరాల తోట — టైపు చేసి, పద్యం ఎక్కించి, పోస్టరు దించుకోండి.</span>
+        <span class="en">A type lab &amp; poster for Telugu. English (ITRANS) becomes Telugu as you type.</span>
+      </p>
+    </header>
+
+    <nav class="chips" aria-label="starter chips">
+      <button type="button" class="chip" data-insert="telugu">తెలుగు</button>
+      <button type="button" class="chip" data-insert="amma">అమ్మ</button>
+      <button type="button" class="chip" data-insert="sri">శ్రీ</button>
+      <button type="button" class="chip vemana" data-insert="verse:uppu">ఉప్పు కప్పురంబు ఒక్క పోలికనుండు</button>
+    </nav>
+
+    <main class="studio">
+      <section class="lab" aria-labelledby="lab-h">
+        <h2 id="lab-h">టైపు శాల <span>Type lab</span></h2>
+        <label class="sr" for="input">English ITRANS or Telugu</label>
+        <textarea id="input" spellcheck="false" autocorrect="off" autocapitalize="off" placeholder="amma  ·  nenu  ·  telugu  ·  padam  ·  sri&#10;kaa  kki  ksha  ·  or paste Telugu"></textarea>
+        <p class="hint">ఇంగ్లీషు (ITRANS) టైపు చేయండి, లేక తెలుగు అతికించండి. <span lang="en">Type English live, or paste Telugu.</span></p>
+        <div class="live-label">తెలుగు</div>
+        <div id="live" class="live" lang="te" aria-live="polite"></div>
+
+        <details class="sheet" open>
+          <summary>చిట్టా · cheat sheet</summary>
+          <div class="rows">
+            <div class="row" id="cons-row"></div>
+            <div class="row" id="vowel-row"></div>
+          </div>
+        </details>
+
+        <div class="explode-block">
+          <h3>అక్షర విచ్ఛిత్తి <span>Explode</span></h3>
+          <p class="hint tight">ఒక అక్షరం నొక్కండి. <span lang="en">Tap a syllable.</span></p>
+          <div id="strip" class="strip" lang="te"></div>
+          <div id="tiles" class="tiles" hidden></div>
+        </div>
+      </section>
+
+      <section class="poster-col" aria-labelledby="poster-h">
+        <h2 id="poster-h">పోస్టరు <span>Poster</span></h2>
+        <div class="styles" role="radiogroup" aria-label="style presets">
+          <button type="button" class="style on" data-style="palm">తాటాకు <span>Palm-leaf</span></button>
+          <button type="button" class="style" data-style="cinema">సినిమా <span>Cinema title</span></button>
+          <button type="button" class="style" data-style="literary">పత్రిక <span>Literary magazine</span></button>
+          <button type="button" class="style" data-style="kalamkari">కలంకారి <span>Kalamkari</span></button>
+        </div>
+        <div class="poster-frame">
+          <canvas id="poster" width="1080" height="1350" aria-label="poster canvas"></canvas>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn ink" id="copyBtn">కాపీ <span>Copy Telugu</span></button>
+          <button type="button" class="btn vermillion" id="pngBtn">దించు <span>Download PNG</span></button>
+        </div>
+        <p id="toast" class="toast" hidden></p>
+      </section>
+    </main>
+
+    <section class="wall" aria-labelledby="wall-h">
+      <h2 id="wall-h">పద్యం గోడ <span>Padyam wall</span></h2>
+      <p class="wall-lead">నిజమైన పద్యాలు — నొక్కితే పోస్టరులో పడతాయి. <span lang="en">Public-domain verses. Click to drop onto the poster.</span></p>
+      <div id="verses" class="verses"></div>
+    </section>
+
+    <footer class="colophon">
+      <p class="santosham">సంతోషం.</p>
+      <p class="fine">not a product · అక్షరం · Sri Kanth</p>
+    </footer>
+  </div>
+  <script src="translit.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
