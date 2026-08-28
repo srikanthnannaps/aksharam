@@ -178,6 +178,7 @@
     raceIn: document.getElementById("raceIn"),
     raceLive: document.getElementById("raceLive"),
     floatPts: document.getElementById("floatPts"),
+    boardHint: document.getElementById("boardHint"),
     overScore: document.getElementById("overScore"),
     overBest: document.getElementById("overBest"),
     startBtn: document.getElementById("startBtn"),
@@ -197,9 +198,11 @@
     endAt: 0,
     total: 0,
     raf: 0,
+    round: 0,
     lock: false,
     recent: [],
     actx: null,
+    hiddenAt: 0,
   };
 
   function segmentGraphemes(text) {
@@ -327,9 +330,10 @@
   }
 
   function wordTime(n, streak) {
-    const base = (game.mode === "race" ? 2600 : 2000) + n * (game.mode === "race" ? 1150 : 950);
-    const tighten = Math.pow(0.935, Math.min(streak, 18));
-    const minT = n * (game.mode === "race" ? 900 : 700);
+    const per = game.mode === "race" ? 1400 : 1100;
+    const base = (game.mode === "race" ? 4200 : 3600) + n * per;
+    const tighten = Math.pow(0.94, Math.min(streak, 16));
+    const minT = n * (game.mode === "race" ? 1000 : 850);
     return Math.max(minT, base * tighten);
   }
 
@@ -427,6 +431,7 @@
   function dealHunt() {
     el.raceBox.hidden = true;
     el.board.hidden = false;
+    if (el.boardHint) el.boardHint.hidden = false;
     clearBoard();
     const tiles = shuffledTiles(game.aks);
     tiles.forEach(function (t) {
@@ -449,6 +454,7 @@
     el.board.hidden = true;
     clearBoard();
     el.raceBox.hidden = false;
+    if (el.boardHint) el.boardHint.hidden = true;
     el.raceIn.value = "";
     el.raceLive.textContent = "";
     renderTarget();
@@ -457,29 +463,37 @@
 
   function startRound() {
     game.lock = false;
+    game.round += 1;
+    const round = game.round;
     game.word = pickWord();
     game.aks = aksOf(game.word.te);
     game.next = 0;
     const ms = wordTime(game.aks.length, game.streak);
     game.total = ms;
-    game.endAt = performance.now() + ms;
+    game.endAt = performance.now() + ms + 280;
     setInk(1);
+    el.floatPts.hidden = true;
+    el.floatPts.classList.remove("show");
     if (game.mode === "race") dealRace();
     else dealHunt();
     if (game.raf) cancelAnimationFrame(game.raf);
-    game.raf = requestAnimationFrame(tick);
+    game.raf = requestAnimationFrame(function step(now) {
+      tick(now, round);
+    });
   }
 
-  function tick(now) {
-    if (game.phase !== "play" || game.lock) return;
+  function tick(now, round) {
+    if (round !== game.round || game.phase !== "play" || game.lock) return;
     const left = game.endAt - now;
     if (left <= 0) {
       setInk(0);
-      onTimeout();
+      onTimeout(round);
       return;
     }
     setInk(left / game.total);
-    game.raf = requestAnimationFrame(tick);
+    game.raf = requestAnimationFrame(function step(t) {
+      tick(t, round);
+    });
   }
 
   function bumpScore(leftMs) {
@@ -512,7 +526,11 @@
     bumpScore(left);
     sfx("word");
     const pause = reduceMotion.matches ? 80 : 420;
-    setTimeout(startRound, pause);
+    const round = game.round;
+    setTimeout(function () {
+      if (game.round !== round || game.phase !== "play") return;
+      startRound();
+    }, pause);
   }
 
   function onTap(btn) {
@@ -581,8 +599,8 @@
     }
   }
 
-  function onTimeout() {
-    if (game.lock) return;
+  function onTimeout(round) {
+    if (round !== game.round || game.lock) return;
     game.lock = true;
     if (game.raf) cancelAnimationFrame(game.raf);
     game.streak = 0;
@@ -594,10 +612,16 @@
       return;
     }
     const pause = reduceMotion.matches ? 80 : 380;
-    setTimeout(startRound, pause);
+    const next = game.round;
+    setTimeout(function () {
+      if (game.round !== next || game.phase !== "play") return;
+      startRound();
+    }, pause);
   }
 
   function gameOver() {
+    game.lock = true;
+    game.round += 1;
     game.phase = "over";
     if (game.raf) cancelAnimationFrame(game.raf);
     sfx("over");
@@ -636,10 +660,36 @@
       b.classList.toggle("on", on);
       b.setAttribute("aria-pressed", on ? "true" : "false");
     });
+    const te = document.querySelector(".how.te");
+    const en = document.querySelector(".how.en");
+    if (te && en) {
+      if (game.mode === "race") {
+        te.textContent = "కనిపించే తెలుగు పదాన్ని ఇంగ్లీషు (ITRANS) లో టైపు చేయండి.";
+        en.textContent = "Type English (ITRANS) to match the Telugu word before the ink dries.";
+      } else {
+        te.textContent = "అక్షరాలను సరైన వరుసలో నొక్కండి. సిరా ఆరిపోయేలోపు.";
+        en.textContent = "Tap the syllables in order before the ink dries. Three lives. Streaks run hotter.";
+      }
+    }
     el.best.textContent = String(readBest());
   }
 
   function bind() {
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        game.hiddenAt = performance.now();
+        if (game.raf) cancelAnimationFrame(game.raf);
+        return;
+      }
+      if (game.phase === "play" && !game.lock && game.hiddenAt) {
+        game.endAt += performance.now() - game.hiddenAt;
+        game.hiddenAt = 0;
+        const round = game.round;
+        game.raf = requestAnimationFrame(function step(now) {
+          tick(now, round);
+        });
+      }
+    });
     el.startBtn.addEventListener("click", begin);
     el.againBtn.addEventListener("click", begin);
     document.querySelectorAll(".mode").forEach(function (b) {

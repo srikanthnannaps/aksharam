@@ -249,12 +249,22 @@ body.hunt[data-phase="over"] .ink-wrap {
 }
 .slot.next {
   color: var(--vermillion-deep);
+  background: #fde8dc;
   border-bottom-color: var(--vermillion);
 }
 .slot.got {
   color: var(--indigo);
   border-bottom-color: var(--turmeric);
 }
+
+.board-hint {
+  margin: 0 0 0.55rem;
+  font-size: 0.82rem;
+  color: #6a573c;
+  font-family: var(--en);
+  font-style: italic;
+}
+.board-hint[hidden] { display: none; }
 
 .board {
   display: flex;
