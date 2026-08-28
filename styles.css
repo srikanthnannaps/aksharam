@@ -161,6 +161,10 @@ body {
   text-align: center;
   line-height: 1.35;
   white-space: normal;
+  flex: 0 0 auto;
+  align-self: center;
+  width: max-content;
+  max-width: min(17rem, 100%);
 }
 
 .studio {
@@ -540,7 +544,7 @@ textarea:focus {
   .page { width: min(1180px, calc(100% - 1.4rem)); padding-top: 1.4rem; }
   .masthead::before, .masthead::after { display: none; }
   .title { font-size: clamp(3.2rem, 16vw, 5.2rem); }
-  .chip.vemana { max-width: 17rem; }
+  .chip.vemana { max-width: min(16rem, 100%); }
 }
 
 @media (max-width: 420px) {
