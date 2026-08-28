@@ -173,14 +173,42 @@
     verses: document.getElementById("verses"),
     consRow: document.getElementById("cons-row"),
     vowelRow: document.getElementById("vowel-row"),
+    posterFrame: document.querySelector(".poster-frame"),
+    wall: document.querySelector(".wall"),
   };
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const finePointer = window.matchMedia("(pointer: fine)");
+  const hoverPointer = window.matchMedia("(hover: hover)");
+  const smallScreen = window.matchMedia("(max-width: 860px)");
+
+  function motionOk() {
+    return !reduceMotion.matches;
+  }
+  function trailOk() {
+    return (
+      motionOk() &&
+      finePointer.matches &&
+      hoverPointer.matches &&
+      !smallScreen.matches
+    );
+  }
 
   let styleName = "palm";
   let telugu = "";
   let selectedCluster = null;
   let fontsReady = false;
+  let lastLive = [];
+  let firstPoster = true;
   const bgCache = {};
   const ctx = el.poster.getContext("2d");
+
+  function replayClass(node, name) {
+    if (!node) return;
+    node.classList.remove(name);
+    void node.offsetWidth;
+    node.classList.add(name);
+  }
 
   function teluguOf(raw) {
     return (window.AksharamTranslit && AksharamTranslit.transliterate(raw)) || raw;
@@ -321,17 +349,39 @@
       btn.innerHTML =
         '<p class="source">' +
         p.source +
-        "</p><p class=\"lines\">" +
-        p.lines.join("\n") +
+        "</p><p class=\"lines\"><span class=\"line-write\">" +
+        p.lines[0] +
+        "</span>\n" +
+        p.lines.slice(1).join("\n") +
         "</p><p class=\"gloss\">" +
         p.gloss +
         "</p>";
       btn.addEventListener("click", function () {
         el.input.value = p.lines.join("\n");
-        refresh();
-        el.poster.scrollIntoView({ behavior: "smooth", block: "center" });
+        refresh({ ink: true });
+        el.poster.scrollIntoView({ behavior: motionOk() ? "smooth" : "auto", block: "center" });
       });
       el.verses.appendChild(btn);
+    });
+  }
+
+  function observeWall() {
+    if (!motionOk() || !el.wall || !("IntersectionObserver" in window)) return;
+    el.wall.classList.add("observe-on");
+    const cards = el.wall.querySelectorAll(".verse");
+    const io = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in-view");
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.28, rootMargin: "0px 0px -8% 0px" }
+    );
+    cards.forEach(function (card) {
+      io.observe(card);
     });
   }
 
@@ -361,19 +411,26 @@
   function showTiles(g) {
     const parts = analyzeCluster(g);
     el.tiles.hidden = false;
-    el.tiles.innerHTML = parts
-      .map(function (t) {
-        return (
-          '<div class="tile"><span class="ch">' +
-          t.char +
-          '</span><span class="role">' +
-          t.role +
-          '</span><span class="hex">' +
-          t.hex +
-          "</span></div>"
-        );
-      })
-      .join("");
+    el.tiles.textContent = "";
+    el.tiles.classList.remove("burst");
+    parts.forEach(function (t) {
+      const div = document.createElement("div");
+      div.className = "tile";
+      const ch = document.createElement("span");
+      ch.className = "ch";
+      ch.textContent = t.char;
+      const role = document.createElement("span");
+      role.className = "role";
+      role.textContent = t.role;
+      const hex = document.createElement("span");
+      hex.className = "hex";
+      hex.textContent = t.hex;
+      div.appendChild(ch);
+      div.appendChild(role);
+      div.appendChild(hex);
+      el.tiles.appendChild(div);
+    });
+    if (motionOk()) replayClass(el.tiles, "burst");
   }
 
   /* ---------- poster drawing ---------- */
@@ -647,7 +704,7 @@
     c.fillText("అక్షరం", w / 2, h - 72);
   }
 
-  function drawPoster() {
+  function drawPoster(opts) {
     const w = el.poster.width;
     const h = el.poster.height;
     ctx.clearRect(0, 0, w, h);
@@ -658,18 +715,61 @@
       ctx.font = '600 48px "Noto Serif Telugu", serif';
       ctx.textAlign = "center";
       ctx.fillText(text, w / 2, h / 2);
-      return;
+    } else {
+      fitAndDrawText(ctx, text, styleName, w, h);
     }
-    fitAndDrawText(ctx, text, styleName, w, h);
+    const wantsSettle = !firstPoster && motionOk() && !(opts && opts.silent);
+    if (wantsSettle) {
+      if (opts && opts.forceSettle) replayClass(el.poster, "settle");
+      else if (!el.poster.classList.contains("settle")) replayClass(el.poster, "settle");
+    }
+    firstPoster = false;
   }
 
-  function refresh() {
+  function renderLive(text, opts) {
+    const gs = segmentGraphemes(text);
+    const prev = lastLive;
+    let mismatch = 0;
+    while (mismatch < gs.length && mismatch < prev.length && gs[mismatch] === prev[mismatch]) {
+      mismatch += 1;
+    }
+    const bulk = opts && opts.bulk;
+    el.live.textContent = "";
+    let delayI = 0;
+    gs.forEach(function (g, i) {
+      if (g === "\n") {
+        el.live.appendChild(document.createElement("br"));
+        return;
+      }
+      const span = document.createElement("span");
+      span.className = "live-ak";
+      span.textContent = g;
+      const changed = i >= mismatch;
+      if (changed && g !== " " && motionOk()) {
+        span.classList.add("ink-in");
+        if (bulk) {
+          span.classList.add("ink-d" + Math.min(delayI, 15));
+          delayI += 1;
+        }
+      }
+      el.live.appendChild(span);
+    });
+    lastLive = gs;
+  }
+
+  function refresh(opts) {
     telugu = teluguOf(el.input.value);
-    el.live.textContent = telugu;
+    const bulk = !!(opts && opts.ink);
+    renderLive(telugu, { bulk: bulk });
     selectedCluster = null;
     el.tiles.hidden = true;
+    el.tiles.classList.remove("burst");
     renderStrip();
+    const opening = firstPoster;
     drawPoster();
+    if (bulk && motionOk() && el.posterFrame && !opening) {
+      replayClass(el.posterFrame, "spread");
+    }
   }
 
   function toast(msg) {
@@ -749,7 +849,8 @@
         document.querySelectorAll(".style").forEach(function (x) {
           x.classList.toggle("on", x === b);
         });
-        drawPoster();
+        if (el.posterFrame) el.posterFrame.setAttribute("data-style", styleName);
+        drawPoster({ forceSettle: true });
       });
     });
     document.querySelectorAll(".chip").forEach(function (b) {
@@ -764,13 +865,116 @@
         } else {
           el.input.value = v;
         }
-        refresh();
+        refresh({ ink: true });
       });
     });
     el.copyBtn.addEventListener("click", copyTelugu);
     el.pngBtn.addEventListener("click", function () {
       downloadPng();
     });
+    document.addEventListener("visibilitychange", function () {
+      document.body.classList.toggle("tab-hidden", document.hidden);
+    });
+    el.poster.addEventListener("animationend", function (e) {
+      if (e.animationName === "paper-settle") el.poster.classList.remove("settle");
+    });
+    el.posterFrame.addEventListener("animationend", function (e) {
+      if (e.animationName === "ink-spread") el.posterFrame.classList.remove("spread");
+    });
+  }
+
+  function initTrail() {
+    if (!trailOk()) return;
+    const canvas = document.createElement("canvas");
+    canvas.id = "ak-trail";
+    canvas.setAttribute("aria-hidden", "true");
+    document.body.appendChild(canvas);
+    const tctx = canvas.getContext("2d");
+    const SIGNS = ["ా", "ి", "ీ", "ు", "ూ", "ె", "ే", "ై", "ొ", "ో", "ం"];
+    const particles = [];
+    let running = false;
+    let lastX = 0;
+    let lastY = 0;
+    let lastSpawn = 0;
+    let dpr = 1;
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(window.innerWidth * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    function spawn(x, y) {
+      particles.push({
+        x: x,
+        y: y,
+        ch: SIGNS[(Math.random() * SIGNS.length) | 0],
+        life: 1,
+        rot: (Math.random() - 0.5) * 0.8,
+        size: 14 + Math.random() * 8,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: 0.12 + Math.random() * 0.25,
+      });
+      if (particles.length > 22) particles.shift();
+    }
+
+    function tick() {
+      running = true;
+      if (document.hidden || !trailOk()) {
+        tctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.length = 0;
+        running = false;
+        return;
+      }
+      tctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      tctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+      tctx.textAlign = "center";
+      tctx.textBaseline = "middle";
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.life -= 0.018;
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+        tctx.save();
+        tctx.translate(p.x, p.y);
+        tctx.rotate(p.rot * (1 - p.life));
+        tctx.globalAlpha = Math.max(0, p.life * 0.42);
+        tctx.fillStyle = i % 2 ? "#c23b22" : "#1e3354";
+        tctx.font = "500 " + p.size + 'px "Noto Serif Telugu", serif';
+        tctx.fillText(p.ch, 0, 0);
+        tctx.restore();
+      }
+      if (particles.length) {
+        requestAnimationFrame(tick);
+      } else {
+        running = false;
+      }
+    }
+
+    window.addEventListener(
+      "pointermove",
+      function (e) {
+        if (!trailOk() || e.pointerType === "touch") return;
+        const tag = e.target && e.target.tagName;
+        if (tag === "TEXTAREA" || tag === "INPUT") return;
+        const now = performance.now();
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+        if (now - lastSpawn < 48 && dx * dx + dy * dy < 900) return;
+        lastSpawn = now;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        spawn(e.clientX, e.clientY);
+        if (!running) requestAnimationFrame(tick);
+      },
+      { passive: true }
+    );
   }
 
   function runSelfTest() {
@@ -799,10 +1003,12 @@
   buildCheat();
   buildWall();
   bind();
+  observeWall();
+  initTrail();
   runSelfTest();
   el.input.value = "telugu";
-  refresh();
+  refresh({ ink: true });
   waitFonts().then(function () {
-    drawPoster();
+    drawPoster({ silent: true });
   });
 })();
