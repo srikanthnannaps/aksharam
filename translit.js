@@ -16,6 +16,9 @@
     sri: "శ్రీ",
     shri: "శ్రీ",
     sree: "శ్రీ",
+    book: "బుక్",
+    house: "హౌస్",
+    navodaya: "నవోదయ",
   };
 
   // Longest-first consonant keys. Values are one or more Telugu letters
@@ -82,7 +85,7 @@
     ["R^i", "ఋ"],
     ["LLi", "ఌ"],
     ["ai", "ఐ"],
-    ["au", "ఔ"],
+    ["au", "ఔ"], ["ou", "ఔ"], ["ow", "ఔ"],
     ["aa", "ఆ"],
     ["ii", "ఈ"],
     ["uu", "ఊ"],
@@ -97,7 +100,7 @@
     ["i", "ఇ"],
     ["u", "ఉ"],
     ["e", "ఎ"],
-    ["o", "ఒ"],
+    ["o", "ఓ"],
   ]);
 
   // Dependent vowel signs. Inherent 'a' is empty.
@@ -107,7 +110,7 @@
     ["R^I", "ౄ"],
     ["R^i", "ృ"],
     ["ai", "ై"],
-    ["au", "ౌ"],
+    ["au", "ౌ"], ["ou", "ౌ"], ["ow", "ౌ"],
     ["aa", "ా"],
     ["ii", "ీ"],
     ["uu", "ూ"],
@@ -122,7 +125,7 @@
     ["i", "ి"],
     ["u", "ు"],
     ["e", "ె"],
-    ["o", "ొ"],
+    ["o", "ో"],
   ]);
 
   function sortPairs(pairs) {
@@ -137,6 +140,12 @@
       if (s.startsWith(k, i)) return { k: k, v: table[p][1], len: k.length };
     }
     return null;
+  }
+
+  function preprocessEnglish(s) {
+    s = s.replace(/oo([kgt])$/i, "u$1");
+    s = s.replace(/([oO][uUwW])([bcdfgklmnprstvwxz])[eE]$/g, "$1$2");
+    return s;
   }
 
   function isAnusvara(s, i) {
@@ -155,7 +164,7 @@
     // Whole-word sri / shrI already in PHONETIC; also fold shrI-style inside ITRANS below.
     let i = 0;
     let out = "";
-    const s = raw;
+    const s = preprocessEnglish(raw);
 
     while (i < s.length) {
       // Explicit anusvara / visarga / halant at this position (rare but valid).
@@ -221,6 +230,10 @@
         }
         if (i >= s.length && cons.k === "m") {
           out += "ం";
+          continue;
+        }
+        if (i >= s.length) {
+          out += cons.v + "్";
           continue;
         }
         out += cons.v; // inherent a
