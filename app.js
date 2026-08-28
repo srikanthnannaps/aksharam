@@ -351,7 +351,7 @@
         p.source +
         "</p><p class=\"lines\"><span class=\"line-write\">" +
         p.lines[0] +
-        "</span>\n" +
+        "</span>" +
         p.lines.slice(1).join("\n") +
         "</p><p class=\"gloss\">" +
         p.gloss +
@@ -369,20 +369,33 @@
     if (!motionOk() || !el.wall || !("IntersectionObserver" in window)) return;
     el.wall.classList.add("observe-on");
     const cards = el.wall.querySelectorAll(".verse");
+    function reveal(card) {
+      card.classList.add("in-view");
+    }
+    function revealVisible() {
+      cards.forEach(function (card) {
+        if (card.classList.contains("in-view")) return;
+        const r = card.getBoundingClientRect();
+        if (r.bottom > 0 && r.top < window.innerHeight) reveal(card);
+      });
+    }
     const io = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (entry) {
           if (entry.isIntersecting) {
-            entry.target.classList.add("in-view");
+            reveal(entry.target);
             io.unobserve(entry.target);
           }
         });
       },
-      { threshold: 0.28, rootMargin: "0px 0px -8% 0px" }
+      { threshold: 0, rootMargin: "0px" }
     );
     cards.forEach(function (card) {
       io.observe(card);
     });
+    revealVisible();
+    window.addEventListener("scroll", revealVisible, { passive: true });
+    window.addEventListener("resize", revealVisible);
   }
 
   function renderStrip() {
