@@ -853,7 +853,7 @@
         drawPoster({ forceSettle: true });
       });
     });
-    document.querySelectorAll(".chip").forEach(function (b) {
+    document.querySelectorAll(".chip[data-insert]").forEach(function (b) {
       b.addEventListener("click", function () {
         const v = b.getAttribute("data-insert");
         if (v.indexOf("verse:") === 0) {

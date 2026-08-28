@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>అక్షర వేట · Akshara Hunt</title>
+  <meta name="description" content="Akshara Hunt — a tiny Telugu syllable game. Tap aksharas in order before the ink dries.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Noto+Sans+Telugu:wght@400;600;700&family=Noto+Serif+Telugu:wght@400;500;600;700&family=Ramabhadra&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="play.css">
+</head>
+<body class="hunt">
+  <div class="sari" aria-hidden="true"></div>
+  <div class="page play-page">
+    <header class="masthead play-mast">
+      <a class="home-link" href="index.html">← అక్షరం</a>
+      <p class="eyebrow">తెలుగు ఆట · a tiny hunt</p>
+      <h1 class="title">అక్షర వేట</h1>
+      <p class="subtitle">
+        <span class="en">Akshara Hunt</span>
+      </p>
+    </header>
+
+    <div class="hud" hidden>
+      <div class="lives" id="lives" aria-label="lives"></div>
+      <div class="hud-stats">
+        <p class="stat score"><b id="score">0</b> <span>స్కోరు</span></p>
+        <p class="stat streak"><b id="streak">×1</b> <span>వరుస</span></p>
+        <p class="stat best"><b id="best">0</b> <span>అత్యుత్తమం</span></p>
+      </div>
+    </div>
+
+    <div class="ink-wrap" hidden>
+      <div class="ink" id="ink" role="progressbar" aria-label="ink drying" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+        <div class="ink-wet" id="inkWet"></div>
+      </div>
+      <p class="ink-label">సిరా · ink</p>
+    </div>
+
+    <main class="stage">
+      <section id="screen-start" class="screen start" aria-labelledby="start-h">
+        <h2 id="start-h" class="sr">ఆట మొదలు</h2>
+        <p class="how te">అక్షరాలను సరైన వరుసలో నొక్కండి. సిరా ఆరిపోయేలోపు.</p>
+        <p class="how en">Tap the syllables in order before the ink dries. Three lives. Streaks run hotter.</p>
+        <div class="modes" role="radiogroup" aria-label="game mode">
+          <button type="button" class="mode on" data-mode="hunt" aria-pressed="true">వేట <span>tap</span></button>
+          <button type="button" class="mode" data-mode="race" aria-pressed="false">టైపు రేస <span>type</span></button>
+        </div>
+        <button type="button" class="btn vermillion go" id="startBtn">ఆడు <span>Play</span></button>
+      </section>
+
+      <section id="screen-play" class="screen play" hidden>
+        <p class="float-pts" id="floatPts" hidden></p>
+        <div class="target" id="target" lang="te"></div>
+        <div class="board" id="board" lang="te"></div>
+        <div class="race-box" id="raceBox" hidden>
+          <label class="sr" for="raceIn">English ITRANS</label>
+          <input id="raceIn" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" inputmode="latin" placeholder="amma  ·  telugu  ·  aksharam">
+          <p class="race-live" id="raceLive" lang="te" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section id="screen-over" class="screen over" hidden>
+        <p class="over-kicker">ఆట అయింది</p>
+        <p class="over-score" id="overScore">0</p>
+        <p class="over-best" id="overBest"></p>
+        <button type="button" class="btn vermillion go" id="againBtn">మళ్ళీ <span>Play again</span></button>
+        <a class="home-link under" href="index.html">అక్షరం · type lab</a>
+      </section>
+    </main>
+
+    <footer class="colophon play-colo">
+      <p class="fine">not a product · అక్షరం · తెలుగు</p>
+    </footer>
+  </div>
+  <script src="translit.js"></script>
+  <script src="play.js"></script>
+</body>
+</html>
