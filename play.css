@@ -385,6 +385,23 @@ body.hunt[data-phase="over"] .ink-wrap {
   font-family: var(--serif-te);
 }
 
+.over-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: 100%;
+}
+.over-actions .btn {
+  flex: none;
+  width: 100%;
+}
+
+.over-toast {
+  min-height: 1.3em;
+  margin: 0.45rem 0 0;
+  text-align: center;
+}
+
 .play-colo {
   margin-top: 1.4rem;
   padding-top: 0.8rem;
