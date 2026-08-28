@@ -18,7 +18,9 @@
   <div class="page">
     <header class="masthead">
       <p class="eyebrow">తెలుగు కోసం · a type toy for everyone</p>
-      <h1 class="title">అక్షరం</h1>
+      <h1 class="title" aria-label="అక్షరం">
+        <span class="title-vis" aria-hidden="true"><span class="title-unit plain unit-a"><span class="title-ghost">అ</span><span class="title-full">అ</span></span><span class="title-unit attach unit-ksha"><span class="title-ghost">క్ష</span><span class="title-base">క</span><span class="title-full">క్ష</span></span><span class="title-unit attach unit-ram"><span class="title-ghost">రం</span><span class="title-base">ర</span><span class="title-full">రం</span></span></span>
+      </h1>
       <p class="subtitle">
         <span class="te">అక్షరాల తోట — టైపు చేసి, పద్యం ఎక్కించి, పోస్టరు దించుకోండి.</span>
         <span class="en">A type lab &amp; poster for Telugu. English (ITRANS) becomes Telugu as you type.</span>
@@ -65,8 +67,27 @@
           <button type="button" class="style" data-style="literary">పత్రిక <span>Literary magazine</span></button>
           <button type="button" class="style" data-style="kalamkari">కలంకారి <span>Kalamkari</span></button>
         </div>
-        <div class="poster-frame">
+        <div class="poster-frame" data-style="palm">
           <canvas id="poster" width="1080" height="1350" aria-label="poster canvas"></canvas>
+          <div class="poster-spread" aria-hidden="true"></div>
+          <div class="kalam-vines" aria-hidden="true">
+            <svg class="vine vine-l" viewBox="0 0 80 420" preserveAspectRatio="xMidYMin slice">
+              <path class="stem" d="M38 6 C 58 64, 16 108, 42 168 S 14 258, 36 338 C 48 378, 28 400, 40 418" fill="none" stroke="#9b2c16" stroke-width="1.35"/>
+              <ellipse class="leaf" cx="56" cy="72" rx="9" ry="15" fill="rgba(194,59,34,0.14)" stroke="#c23b22" stroke-width="1.1" transform="rotate(32 56 72)"/>
+              <ellipse class="leaf" cx="18" cy="148" rx="8" ry="14" fill="rgba(30,51,84,0.12)" stroke="#1e3354" stroke-width="1.1" transform="rotate(-38 18 148)"/>
+              <ellipse class="leaf" cx="58" cy="228" rx="9" ry="15" fill="rgba(194,59,34,0.14)" stroke="#c23b22" stroke-width="1.1" transform="rotate(24 58 228)"/>
+              <ellipse class="leaf" cx="16" cy="302" rx="8" ry="13" fill="rgba(30,51,84,0.12)" stroke="#1e3354" stroke-width="1.1" transform="rotate(-30 16 302)"/>
+              <path class="paisley" d="M44 188 C 62 176, 68 198, 50 208 C 38 214, 34 198, 44 188 Z" fill="none" stroke="#9b2c16" stroke-width="1.1"/>
+            </svg>
+            <svg class="vine vine-r" viewBox="0 0 80 420" preserveAspectRatio="xMidYMin slice">
+              <path class="stem" d="M38 6 C 58 64, 16 108, 42 168 S 14 258, 36 338 C 48 378, 28 400, 40 418" fill="none" stroke="#9b2c16" stroke-width="1.35"/>
+              <ellipse class="leaf" cx="56" cy="72" rx="9" ry="15" fill="rgba(194,59,34,0.14)" stroke="#c23b22" stroke-width="1.1" transform="rotate(32 56 72)"/>
+              <ellipse class="leaf" cx="18" cy="148" rx="8" ry="14" fill="rgba(30,51,84,0.12)" stroke="#1e3354" stroke-width="1.1" transform="rotate(-38 18 148)"/>
+              <ellipse class="leaf" cx="58" cy="228" rx="9" ry="15" fill="rgba(194,59,34,0.14)" stroke="#c23b22" stroke-width="1.1" transform="rotate(24 58 228)"/>
+              <ellipse class="leaf" cx="16" cy="302" rx="8" ry="13" fill="rgba(30,51,84,0.12)" stroke="#1e3354" stroke-width="1.1" transform="rotate(-30 16 302)"/>
+              <path class="paisley" d="M44 188 C 62 176, 68 198, 50 208 C 38 214, 34 198, 44 188 Z" fill="none" stroke="#9b2c16" stroke-width="1.1"/>
+            </svg>
+          </div>
         </div>
         <div class="actions">
           <button type="button" class="btn ink" id="copyBtn">కాపీ <span>Copy Telugu</span></button>
