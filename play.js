@@ -183,6 +183,8 @@
     overBest: document.getElementById("overBest"),
     startBtn: document.getElementById("startBtn"),
     againBtn: document.getElementById("againBtn"),
+    savePosterBtn: document.getElementById("savePosterBtn"),
+    overToast: document.getElementById("overToast"),
     stage: document.querySelector(".stage"),
   };
 
@@ -203,6 +205,8 @@
     recent: [],
     actx: null,
     hiddenAt: 0,
+    maxStreak: 0,
+    poster: null,
   };
 
   function segmentGraphemes(text) {
@@ -271,6 +275,193 @@
     try {
       localStorage.setItem(bestKey(), String(n));
     } catch (e) {}
+  }
+
+  /* Palm-leaf poster grain — same pattern as the type lab in app.js. */
+  function mulberry(a) {
+    return function () {
+      let t = (a += 0x6d2b79f5);
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function drawPalmBg(c, w, h) {
+    const g = c.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, "#f3e4c4");
+    g.addColorStop(0.5, "#ead6ae");
+    g.addColorStop(1, "#e0c894");
+    c.fillStyle = g;
+    c.fillRect(0, 0, w, h);
+    const rng = mulberry(7);
+    c.fillStyle = "rgba(90, 60, 20, 0.035)";
+    for (let i = 0; i < 1400; i++) {
+      c.fillRect(rng() * w, rng() * h, rng() * 3, rng() * 2);
+    }
+    c.strokeStyle = "rgba(139, 90, 43, 0.28)";
+    c.lineWidth = 1;
+    for (let y = 48; y < h - 30; y += 36) {
+      c.beginPath();
+      c.moveTo(70, y + Math.sin(y / 40) * 1.5);
+      c.lineTo(w - 70, y);
+      c.stroke();
+    }
+    c.fillStyle = "#5c3a18";
+    for (let y = 90; y < h - 80; y += 70) {
+      c.beginPath();
+      c.arc(42, y, 9, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = "#ead6ae";
+      c.beginPath();
+      c.arc(42, y, 4, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = "#5c3a18";
+    }
+    c.strokeStyle = "#6b4423";
+    c.lineWidth = 8;
+    c.strokeRect(28, 28, w - 56, h - 56);
+    c.lineWidth = 2;
+    c.strokeRect(42, 42, w - 84, h - 84);
+  }
+
+  function waitFonts() {
+    const ready = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    return ready.then(function () {
+      if (document.fonts && document.fonts.load) {
+        return Promise.all([
+          document.fonts.load('700 80px "Noto Serif Telugu"'),
+          document.fonts.load('600 48px "Noto Serif Telugu"'),
+          document.fonts.load('400 80px "Ramabhadra"'),
+          document.fonts.load('700 48px "Noto Sans Telugu"'),
+        ]);
+      }
+    }).catch(function () {});
+  }
+
+  function fontsUsable(c) {
+    c.save();
+    c.font = '700 80px "Noto Serif Telugu"';
+    const w = c.measureText("శ్రీ").width;
+    c.restore();
+    return w >= 20;
+  }
+
+  function fitScoreSize(c, text, maxW) {
+    let size = 340;
+    const family = '"Ramabhadra", "Noto Serif Telugu"';
+    c.font = "400 " + size + "px " + family;
+    while (size > 96 && c.measureText(text).width > maxW) {
+      size -= 8;
+      c.font = "400 " + size + "px " + family;
+    }
+    return size;
+  }
+
+  function drawScorePoster(state) {
+    const w = 1080;
+    const h = 1350;
+    const cv = document.createElement("canvas");
+    cv.width = w;
+    cv.height = h;
+    const c = cv.getContext("2d");
+    const score = state && isFinite(state.score) ? Math.max(0, Math.round(state.score)) : 0;
+    const streak = state && isFinite(state.streak) ? Math.max(0, Math.round(state.streak)) : 0;
+    const mode = state && state.mode === "race" ? "race" : "hunt";
+    const record = !!(state && state.record);
+    const scoreText = String(score);
+    const modeText = mode === "race" ? "టైపు రేస" : "వేట";
+    const meta = modeText + "  ·  ×" + streak + " వరుస";
+
+    drawPalmBg(c, w, h);
+
+    c.textAlign = "center";
+    c.textBaseline = "alphabetic";
+
+    c.fillStyle = "#c23b22";
+    c.fillRect(w / 2 - 48, 168, 96, 6);
+    c.fillStyle = "#1e3354";
+    c.fillRect(w / 2 - 28, 178, 56, 3);
+
+    c.fillStyle = "#1e3354";
+    c.font = '400 92px "Ramabhadra", "Noto Serif Telugu"';
+    c.fillText("అక్షర వేట", w / 2, 300);
+
+    c.strokeStyle = "#c23b22";
+    c.lineWidth = 2;
+    c.beginPath();
+    c.moveTo(220, 348);
+    c.lineTo(w - 220, 348);
+    c.stroke();
+    c.strokeStyle = "#1e3354";
+    c.lineWidth = 1;
+    c.beginPath();
+    c.moveTo(260, 358);
+    c.lineTo(w - 260, 358);
+    c.stroke();
+
+    const maxW = w - 200;
+    const scoreSize = fitScoreSize(c, scoreText, maxW);
+    c.fillStyle = "#152238";
+    c.font = "400 " + scoreSize + "px \"Ramabhadra\", \"Noto Serif Telugu\"";
+    c.fillText(scoreText, w / 2, 720);
+
+    c.fillStyle = "#3a2c1a";
+    c.font = '600 44px "Noto Serif Telugu"';
+    c.fillText(meta, w / 2, 860);
+
+    if (record) {
+      c.fillStyle = "#c23b22";
+      c.font = '700 32px "Noto Sans Telugu", "Noto Serif Telugu"';
+      c.fillText("కొత్త అత్యుత్తమం", w / 2, 960);
+    }
+
+    c.fillStyle = "#6b4423";
+    c.font = '600 26px "Noto Serif Telugu"';
+    c.fillText("అక్షరం", w / 2, h - 72);
+
+    return cv;
+  }
+
+  function overToast(msg) {
+    if (!el.overToast) return;
+    el.overToast.hidden = false;
+    el.overToast.textContent = msg;
+    clearTimeout(overToast._t);
+    overToast._t = setTimeout(function () {
+      el.overToast.hidden = true;
+    }, 2200);
+  }
+
+  function savePoster() {
+    if (!el.savePosterBtn || game.phase !== "over") return;
+    const snap = game.poster || {
+      score: game.score,
+      streak: game.maxStreak,
+      mode: game.mode,
+      record: false,
+    };
+    el.savePosterBtn.disabled = true;
+    waitFonts().then(function () {
+      const cv = drawScorePoster(snap);
+      const c = cv.getContext("2d");
+      if (!fontsUsable(c)) {
+        overToast("ఫాంట్ లోడ్ కాలేదు · font not ready, try again");
+        return;
+      }
+      const a = document.createElement("a");
+      a.download = "aksharam-hunt.png";
+      a.href = cv.toDataURL("image/png");
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      overToast("పోస్టరు దిగింది · PNG saved");
+    }).catch(function () {
+      overToast("పోస్టరు దించలేదు · could not save");
+    }).then(function () {
+      el.savePosterBtn.disabled = false;
+    });
   }
 
   function translit(raw) {
@@ -498,6 +689,7 @@
 
   function bumpScore(leftMs) {
     game.streak += 1;
+    if (game.streak > game.maxStreak) game.maxStreak = game.streak;
     const leftover = Math.max(1, Math.round(leftMs / 100));
     const pts = leftover * game.streak;
     game.score += pts;
@@ -637,6 +829,16 @@
     } else {
       el.overBest.textContent = "అత్యుత్తమం · " + prev;
     }
+    game.poster = {
+      score: game.score,
+      streak: game.maxStreak,
+      mode: game.mode,
+      record: isRecord && game.score > 0,
+    };
+    if (el.overToast) {
+      el.overToast.hidden = true;
+      el.overToast.textContent = "";
+    }
     showScreen("over");
     el.againBtn.focus();
   }
@@ -646,6 +848,8 @@
     game.lives = LIVES0;
     game.score = 0;
     game.streak = 0;
+    game.maxStreak = 0;
+    game.poster = null;
     game.recent = [];
     game.lock = false;
     renderHud();
@@ -692,6 +896,7 @@
     });
     el.startBtn.addEventListener("click", begin);
     el.againBtn.addEventListener("click", begin);
+    if (el.savePosterBtn) el.savePosterBtn.addEventListener("click", savePoster);
     document.querySelectorAll(".mode").forEach(function (b) {
       b.addEventListener("click", function () {
         setMode(b.getAttribute("data-mode"));
@@ -727,11 +932,14 @@
     const raceFail = WORDS.filter(function (w) {
       return w.en && t && t.transliterate(w.en) !== w.te;
     });
-    if (failed.length || short.length || raceFail.length) {
+    const poster = drawScorePoster({ score: 1840, streak: 6, mode: "hunt", record: true });
+    const posterOk = poster && poster.width === 1080 && poster.height === 1350;
+    if (failed.length || short.length || raceFail.length || !posterOk) {
       console.error("Akshara Hunt tests failed", {
         split: failed,
         short: short.map(function (w) { return w.te; }),
         race: raceFail.map(function (w) { return w.en + "→" + (t && t.transliterate(w.en)); }),
+        poster: posterOk ? "ok" : "bad-size",
       });
     } else {
       console.info("Akshara Hunt: split + word-bank tests passed (" + WORDS.length + " words)");
