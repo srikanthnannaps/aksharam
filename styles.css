@@ -644,21 +644,8 @@ body.tab-hidden .poster-frame[data-style="cinema"] {
     animation: studio-in 0.55s ease 2.48s both;
   }
 
-  .title-full { opacity: 0; }
-  .unit-a .title-full {
-    animation: glyph-ink 0.48s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
-  }
-  .unit-ksha .title-base {
-    animation: glyph-ink 0.44s cubic-bezier(0.22, 1, 0.36, 1) 0.62s both;
-  }
-  .unit-ksha .title-full {
-    animation: glyph-attach 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.86s both;
-  }
-  .unit-ram .title-base {
-    animation: glyph-ink 0.44s cubic-bezier(0.22, 1, 0.36, 1) 0.74s both;
-  }
-  .unit-ram .title-full {
-    animation: glyph-attach-side 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.98s both;
+  .title {
+    animation: glyph-ink 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
   }
 
   .live-ak.ink-in {
