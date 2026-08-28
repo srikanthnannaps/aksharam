@@ -129,6 +129,7 @@ body {
   flex-wrap: wrap;
   gap: 0.55rem;
   justify-content: center;
+  align-items: center;
   margin: 1.6rem 0 2.2rem;
 }
 .chip {
@@ -142,6 +143,9 @@ body {
   cursor: pointer;
   box-shadow: 0 1px 0 rgba(26, 18, 8, 0.06);
   transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s;
+  flex: 0 1 auto;
+  width: fit-content;
+  max-width: 100%;
 }
 .chip:hover, .chip:focus-visible {
   background: #fff;
@@ -154,6 +158,9 @@ body {
   background: var(--indigo);
   color: var(--leaf);
   border-color: var(--indigo-deep);
+  text-align: center;
+  line-height: 1.35;
+  white-space: normal;
 }
 
 .studio {
@@ -529,11 +536,11 @@ textarea:focus {
 
 @media (max-width: 860px) {
   .studio { grid-template-columns: 1fr; }
-  .poster-col { order: -1; }
   .verses { grid-template-columns: 1fr; }
   .page { width: min(1180px, calc(100% - 1.4rem)); padding-top: 1.4rem; }
   .masthead::before, .masthead::after { display: none; }
   .title { font-size: clamp(3.2rem, 16vw, 5.2rem); }
+  .chip.vemana { max-width: 17rem; }
 }
 
 @media (max-width: 420px) {
@@ -602,7 +609,7 @@ textarea:focus {
   z-index: 2;
 }
 
-.line-write { display: block; }
+.line-write { display: block; margin: 0; }
 
 #ak-trail {
   position: fixed;
@@ -749,6 +756,7 @@ body.tab-hidden .poster-frame[data-style="cinema"] {
   }
   .wall.observe-on .verse .line-write {
     clip-path: inset(0 100% 0 0);
+    animation: write-on 0.01s linear 1.2s forwards;
   }
   .wall.observe-on .verse.in-view .line-write {
     animation: write-on 0.85s ease 0.12s forwards;
@@ -812,6 +820,7 @@ body.tab-hidden .poster-frame[data-style="cinema"] {
   100% { transform: scale(1); }
 }
 @keyframes write-on {
+  from { clip-path: inset(0 100% 0 0); }
   to { clip-path: inset(0 0 0 0); }
 }
 @keyframes tile-land {
