@@ -1,6 +1,6 @@
 # అక్షరం · Aksharam
 
-A personal Telugu type lab and poster toy for Sri Kanth. One static page. No login, no analytics, no payments.
+A Telugu type lab and poster toy. Type English, get Telugu posters and padyams. One static page. No login, no analytics, no payments.
 
 ## Open it
 
